@@ -93,12 +93,9 @@ loadGLB('https://cdn.3dassets.dev/assets/27431/v1/model.glb', new THREE.Vector3(
 
 // Enemy (wolf from asset pack)
 const enemy = new THREE.Group();
-loader.load('/assets/animals/Wolf.glb', (gltf)=>{
-  enemy.clear();
-  const r = gltf.scene;
-  r.traverse((o:any)=>{ if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
-  enemy.add(r);
-}, undefined, (e)=>console.warn('wolf load', e));
+const enemyBody2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.4,1.2,8,16), new THREE.MeshStandardMaterial({color:0x557733}));
+enemyBody2.position.y=0.8; enemyBody2.castShadow=true;
+enemy.add(enemyBody2);
 // (placeholder removed; wolf model loads above)
 enemy.position.set(12,0,8);
 scene.add(enemy);
