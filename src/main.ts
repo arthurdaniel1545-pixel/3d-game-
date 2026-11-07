@@ -91,7 +91,16 @@ loadGLB('https://cdn.3dassets.dev/assets/27427/v1/model.glb', new THREE.Vector3(
 loadGLB('https://cdn.3dassets.dev/assets/27426/v1/model.glb', new THREE.Vector3(-6,0,-4),1);
 loadGLB('https://cdn.3dassets.dev/assets/27431/v1/model.glb', new THREE.Vector3(15,0,12),1);
 
-// Enemy (wolf from asset pack)
+// First-person gun attached to camera
+loader.load('/assets/fps/AKM.glb', (gltf)=>{
+  const gun = gltf.scene;
+  gun.scale.setScalar(0.5);
+  gun.position.set(0.3,-0.3,-0.6);
+  gun.rotation.y = Math.PI;
+  camera.add(gun);
+}, undefined, (e)=>console.warn('gun load', e));
+
+// Enemy (capsule placeholder)
 const enemy = new THREE.Group();
 const enemyBody2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.4,1.2,8,16), new THREE.MeshStandardMaterial({color:0x557733}));
 enemyBody2.position.y=0.8; enemyBody2.castShadow=true;
