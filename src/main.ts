@@ -252,11 +252,9 @@ function animate(){
   if(player.position.y <= 0){ player.position.y=0; state.vy=0; state.onGround=true; }
   if(jumpPressed && state.onGround){ state.vy=JUMP; state.onGround=false; jumpPressed=false; }
 
-  // Camera follow
-  const camOffset = new THREE.Vector3(0, 4, 7).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
-  const desired = player.position.clone().add(camOffset);
-  camera.position.lerp(desired, 0.15);
-  camera.lookAt(player.position.x, player.position.y+1.2, player.position.z);
+  // First-person camera
+  camera.position.set(player.position.x, player.position.y+1.6, player.position.z);
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
   // Enemy AI
   const distToPlayer = enemy.position.distanceTo(player.position);
