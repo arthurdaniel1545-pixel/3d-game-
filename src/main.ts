@@ -91,24 +91,20 @@ loadGLB('https://cdn.3dassets.dev/assets/27427/v1/model.glb', new THREE.Vector3(
 loadGLB('https://cdn.3dassets.dev/assets/27426/v1/model.glb', new THREE.Vector3(-6,0,-4),1);
 loadGLB('https://cdn.3dassets.dev/assets/27431/v1/model.glb', new THREE.Vector3(15,0,12),1);
 
-// Enemy (zombie) - use a box placeholder + try load model
+// Enemy (wolf from asset pack)
 const enemy = new THREE.Group();
-const enemyBody = new THREE.Mesh(new THREE.CapsuleGeometry(0.4,1.2,8,16), new THREE.MeshStandardMaterial({color:0x557733}));
-enemyBody.position.y=0.8; enemyBody.castShadow=true;
-enemy.add(enemyBody);
+loader.load('/assets/animals/Wolf.glb', (gltf)=>{
+  enemy.clear();
+  const r = gltf.scene;
+  r.traverse((o:any)=>{ if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  enemy.add(r);
+}, undefined, (e)=>console.warn('wolf load', e));
+// (placeholder removed; wolf model loads above)
 enemy.position.set(12,0,8);
 scene.add(enemy);
 
 // Try load a zombie model to replace
-loader.load('https://cdn.3dassets.dev/assets/12013/v1/model.glb', (gltf)=>{
-  // infected rat small; scale up as placeholder creature
-  const r = gltf.scene;
-  r.scale.setScalar(4);
-  r.position.y=0;
-  enemy.clear();
-  enemy.add(r);
-  r.traverse((o:any)=>{ if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
-}, undefined, ()=>{});
+// wolf already loaded into enemy above
 
 // Controls state
 const keys: Record<string,boolean> = {};
