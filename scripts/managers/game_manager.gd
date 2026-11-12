@@ -29,8 +29,14 @@ var player_data: Dictionary = {
 	"max_thirst": 100.0,
 	"energy": 100.0,
 	"max_energy": 100.0,
-	"temperature": 37.0
+	"sleep": 100.0,
+	"max_sleep": 100.0,
+	"wounds": 0.0,
+	"sickness": 0.0,
+	"temperature": 37.0,
+	"equipped_weapon": "knife"
 }
+
 
 var world_data: Dictionary = {
 	"seed": 0,
@@ -62,11 +68,17 @@ func reset_new_game() -> void:
 		"max_thirst": 100.0,
 		"energy": 100.0,
 		"max_energy": 100.0,
-		"temperature": 37.0
+		"sleep": 100.0,
+		"max_sleep": 100.0,
+		"wounds": 0.0,
+		"sickness": 0.0,
+		"temperature": 37.0,
+		"equipped_weapon": "knife"
 	}
 	inventory_data = {}
 	buildings_data = []
 	world_objects_data = {}
+
 
 func set_character_selection(gender: String, customization: Dictionary) -> void:
 	selected_gender = gender
@@ -86,8 +98,11 @@ func start_new_game() -> void:
 	InventoryManager.add_item("knife", 1)
 	InventoryManager.add_item("axe", 1)
 	InventoryManager.add_item("bandage", 2)
+	InventoryManager.add_item("cloth", 2)
+	InventoryManager.add_item("herbs", 1)
 	game_started.emit()
 	get_tree().change_scene_to_file("res://scenes/world/world.tscn")
+
 
 
 func continue_game() -> void:

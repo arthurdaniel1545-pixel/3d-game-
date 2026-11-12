@@ -5,8 +5,13 @@ signal health_changed(current: float, max_value: float)
 signal hunger_changed(current: float, max_value: float)
 signal thirst_changed(current: float, max_value: float)
 signal energy_changed(current: float, max_value: float)
+signal sleep_changed(current: float, max_value: float)
+signal wounds_changed(current: float, max_value: float)
+signal sickness_changed(current: float, max_value: float)
 signal died
 signal inventory_toggled
+signal status_message(text: String)
+
 
 @export var walk_speed: float = 110.0
 @export var run_speed: float = 170.0
@@ -27,7 +32,15 @@ var thirst: float = 100.0
 var max_thirst: float = 100.0
 var energy: float = 100.0
 var max_energy: float = 100.0
+var sleep: float = 100.0
+var max_sleep: float = 100.0
 var temperature: float = 37.0
+var wounds: float = 0.0 # 0 = none, higher = worse
+var max_wounds: float = 100.0
+var sickness: float = 0.0 # 0 = healthy
+var max_sickness: float = 100.0
+var is_sleeping: bool = false
+
 
 var facing_dir: String = "down"
 var is_running: bool = false
@@ -39,6 +52,9 @@ var _hunger_timer: float = 0.0
 var _thirst_timer: float = 0.0
 var _energy_regen_timer: float = 0.0
 var _temp_timer: float = 0.0
+var _sleep_timer: float = 0.0
+var _status_timer: float = 0.0
+
 
 var projectile_scene: PackedScene = preload("res://scenes/objects/projectile.tscn")
 
@@ -61,15 +77,32 @@ func _load_stats_from_manager() -> void:
 	max_thirst = float(p.get("max_thirst", 100.0))
 	energy = float(p.get("energy", max_energy))
 	max_energy = float(p.get("max_energy", 100.0))
+	sleep = float(p.get("sleep", 100.0))
+	max_sleep = float(p.get("max_sleep", 100.0))
+	wounds = float(p.get("wounds", 0.0))
+	sickness = float(p.get("sickness", 0.0))
+	if p.get("equipped_weapon", "") != "":
+		equipped_weapon = str(p.get("equipped_weapon"))
 	if GameManager.player_data.has("position") and GameManager.player_data["position"] is Vector2:
 		var pos: Vector2 = GameManager.player_data["position"]
 		if pos != Vector2.ZERO or not GameManager.is_new_game:
 			global_position = pos
 
+
 func _physics_process(delta: float) -> void:
+	if is_sleeping:
+		velocity = Vector2.ZERO
+		_update_animation(Vector2.ZERO)
+		_update_survival(delta, Vector2.ZERO)
+		return
+	
 	var input_dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-	is_running = Input.is_action_pressed("run") and energy > 5.0 and input_dir != Vector2.ZERO
-	var speed := run_speed if is_running else walk_speed
+	var equip_stats := InventoryManager.get_equipment_stats() if is_instance_valid(InventoryManager) else {"speed_bonus": 0.0}
+	var speed_bonus: float = float(equip_stats.get("speed_bonus", 0.0))
+	is_running = Input.is_action_pressed("run") and energy > 5.0 and sleep > 5.0 and input_dir != Vector2.ZERO
+	var speed := (run_speed if is_running else walk_speed) + speed_bonus
+	if wounds > 50.0 or sickness > 40.0:
+		speed *= 0.85
 	velocity = input_dir * speed
 	move_and_slide()
 	
@@ -81,6 +114,7 @@ func _physics_process(delta: float) -> void:
 		_try_attack()
 	if Input.is_action_just_pressed("interact"):
 		_try_interact()
+
 
 func _update_facing(dir: Vector2) -> void:
 	if dir == Vector2.ZERO:
@@ -177,37 +211,100 @@ func _update_survival(delta: float, dir: Vector2) -> void:
 	_hunger_timer += delta
 	_thirst_timer += delta
 	_temp_timer += delta
+	_sleep_timer += delta
+	_status_timer += delta
+	
 	if _hunger_timer >= 30.0:
 		_hunger_timer = 0.0
-		hunger = maxf(hunger - 1.5, 0.0)
+		var rate := 1.5
+		if sickness > 30.0: rate += 0.5
+		hunger = maxf(hunger - rate, 0.0)
 		hunger_changed.emit(hunger, max_hunger)
 	if _thirst_timer >= 20.0:
 		_thirst_timer = 0.0
-		thirst = maxf(thirst - 2.0, 0.0)
+		var rate := 2.0
+		if sickness > 30.0 or TimeManager.weather == "storm": rate += 0.5
+		thirst = maxf(thirst - rate, 0.0)
 		thirst_changed.emit(thirst, max_thirst)
 	
+	# Sleep fatigue
+	if _sleep_timer >= 25.0:
+		_sleep_timer = 0.0
+		if is_sleeping:
+			sleep = minf(sleep + 15.0, max_sleep)
+			energy = minf(energy + 10.0, max_energy)
+			wounds = maxf(wounds - 2.0, 0.0)
+			sickness = maxf(sickness - 1.0, 0.0)
+		else:
+			var sleep_drain := 1.2
+			if is_running: sleep_drain += 0.8
+			sleep = maxf(sleep - sleep_drain, 0.0)
+		sleep_changed.emit(sleep, max_sleep)
+		wounds_changed.emit(wounds, max_wounds)
+		sickness_changed.emit(sickness, max_sickness)
+	
+	# Energy
 	if dir != Vector2.ZERO and is_running:
 		energy = maxf(energy - delta * 8.0, 0.0)
 		energy_changed.emit(energy, max_energy)
-	elif dir == Vector2.ZERO:
+	elif dir == Vector2.ZERO or is_sleeping:
 		energy = minf(energy + delta * 6.0, max_energy)
 		energy_changed.emit(energy, max_energy)
 	elif dir != Vector2.ZERO:
 		energy = minf(energy + delta * 1.5, max_energy)
 		energy_changed.emit(energy, max_energy)
 	
-	# Temperature/shelter: cold at night or in storm without nearby building
+	# Temperature/shelter and sickness risk
 	if _temp_timer >= 10.0:
 		_temp_timer = 0.0
 		var temp := TimeManager.temperature_c
 		var sheltered := _is_sheltered()
-		if (temp < 10.0 or TimeManager.is_night()) and not sheltered:
-			health = maxf(health - 1.0, 0.0)
+		var equip_stats := InventoryManager.get_equipment_stats() if is_instance_valid(InventoryManager) else {"warmth": 0.0}
+		var warmth: float = float(equip_stats.get("warmth", 0.0))
+		var effective_temp := temp + warmth * 0.5
+		if (effective_temp < 8.0 or (TimeManager.is_night() and effective_temp < 12.0)) and not sheltered and not is_sleeping:
+			health = maxf(health - 1.5, 0.0)
+			if randf() < 0.15:
+				sickness = minf(sickness + 5.0, max_sickness)
 			health_changed.emit(health, max_health)
+			sickness_changed.emit(sickness, max_sickness)
+		# Wounds bleed slowly
+		if wounds > 20.0:
+			health = maxf(health - 0.5, 0.0)
+			health_changed.emit(health, max_health)
+		# Sickness drains
+		if sickness > 50.0:
+			health = maxf(health - 0.5, 0.0)
+			energy = maxf(energy - 1.0, 0.0)
+			health_changed.emit(health, max_health)
+			energy_changed.emit(energy, max_energy)
 	
-	# Starvation/dehydration damage
+	# Starvation/dehydration/exhaustion damage
 	if hunger <= 0.0 or thirst <= 0.0:
 		receive_damage(delta * 2.0)
+	if sleep <= 0.0 and _status_timer >= 5.0:
+		_status_timer = 0.0
+		receive_damage(1.0)
+		status_message.emit("Você está exausto! Precisa dormir.")
+
+func start_sleep() -> void:
+	if is_sleeping:
+		return
+	is_sleeping = true
+	status_message.emit("Dormindo... (pressione E para acordar)")
+
+func stop_sleep() -> void:
+	if not is_sleeping:
+		return
+	is_sleeping = false
+	status_message.emit("Você acordou.")
+
+func toggle_sleep() -> void:
+	if is_sleeping:
+		stop_sleep()
+	else:
+		start_sleep()
+
 
 func _is_sheltered() -> bool:
 	var buildings := get_tree().get_nodes_in_group("building")
@@ -270,6 +367,9 @@ func equip_weapon(item_id: String) -> void:
 
 
 func _try_interact() -> void:
+	if is_sleeping:
+		stop_sleep()
+		return
 	var dir_vec := _facing_to_vector()
 	interact_ray.target_position = dir_vec * 40.0
 	interact_ray.force_raycast_update()
@@ -277,8 +377,18 @@ func _try_interact() -> void:
 		var obj = interact_ray.get_collider()
 		if obj and obj.has_method("interact"):
 			obj.interact(self)
+			return
 		elif obj and obj.has_method("collect"):
 			obj.collect(self)
+			return
+	# If sheltered and tired, allow resting/sleeping by interacting in place
+	if _is_sheltered() and sleep < 80.0:
+		toggle_sleep()
+	elif _is_sheltered():
+		status_message.emit("Você descansa no abrigo.")
+		energy = minf(energy + 5.0, max_energy)
+		energy_changed.emit(energy, max_energy)
+
 
 func _facing_to_vector() -> Vector2:
 	match facing_dir:
@@ -291,15 +401,23 @@ func _facing_to_vector() -> Vector2:
 	return Vector2.DOWN
 
 func receive_damage(amount: float, _source: Node = null) -> void:
-	health = maxf(health - amount, 0.0)
+	var equip_stats := InventoryManager.get_equipment_stats() if is_instance_valid(InventoryManager) else {"defense": 0.0}
+	var defense: float = float(equip_stats.get("defense", 0.0))
+	var final_amount := maxf(amount - defense * 0.3, amount * 0.2)
+	health = maxf(health - final_amount, 0.0)
+	if final_amount > 8.0 and randf() < 0.25:
+		wounds = minf(wounds + final_amount * 0.5, max_wounds)
+		wounds_changed.emit(wounds, max_wounds)
 	health_changed.emit(health, max_health)
 	modulate = Color(1, 0.5, 0.5)
 	var tw := create_tween()
 	tw.tween_property(self, "modulate", Color.WHITE, 0.2)
 	if health <= 0.0:
 		died.emit()
-		# Simple respawn at menu for now
+		# Save death state and return to menu
+		SaveManager.save_game()
 		GameManager.go_to_main_menu()
+
 
 func heal(amount: float) -> void:
 	health = minf(health + amount, max_health)
@@ -319,6 +437,9 @@ func _update_hud_signals() -> void:
 	hunger_changed.emit(hunger, max_hunger)
 	thirst_changed.emit(thirst, max_thirst)
 	energy_changed.emit(energy, max_energy)
+	sleep_changed.emit(sleep, max_sleep)
+	wounds_changed.emit(wounds, max_wounds)
+	sickness_changed.emit(sickness, max_sickness)
 
 func get_save_data() -> Dictionary:
 	return {
@@ -331,10 +452,16 @@ func get_save_data() -> Dictionary:
 		"max_thirst": max_thirst,
 		"energy": energy,
 		"max_energy": max_energy,
-		"temperature": temperature
+		"sleep": sleep,
+		"max_sleep": max_sleep,
+		"wounds": wounds,
+		"sickness": sickness,
+		"temperature": temperature,
+		"equipped_weapon": equipped_weapon
 	}
 
 func apply_save_data(data: Dictionary) -> void:
 	GameManager.player_data = data.duplicate(true)
 	_load_stats_from_manager()
 	_update_hud_signals()
+
