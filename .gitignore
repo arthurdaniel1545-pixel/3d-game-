@@ -1,4 +1,26 @@
-node_modules/
+# Godot 4+ specific ignores
+.godot/
+/android/
+*.translation
+*.import
+
+# Godot-specific
+.import/
+export.cfg
+export_presets.cfg
+
+# Mono
+.mono/
+data_*/
+mono_crash.*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local
+.tmp_extract/
 .harness/
-dist/
-poly-pizza-mcp/
+node_modules/
+*.tmp
+*.log
