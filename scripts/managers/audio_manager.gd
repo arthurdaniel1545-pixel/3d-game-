@@ -36,4 +36,3 @@ func set_sfx_volume(v: float) -> void:
 
 func set_muted(m: bool) -> void:
 	muted = m
-	class="sr-only">[Note: some earlier tool calls still pending; I’ll continue creating core files in parallel.]

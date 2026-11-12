@@ -117,4 +117,3 @@ func load_save_data(data: Dictionary) -> void:
 	time_minutes = float(data.get("time_minutes", 480.0))
 	weather = str(data.get("weather", "clear"))
 	_update_period()
-	class="sr-only">[Progress update: 2 tool calls returned — reviewed.]

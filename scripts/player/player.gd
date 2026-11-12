@@ -257,11 +257,12 @@ func _update_survival(delta: float, dir: Vector2) -> void:
 	# Temperature/shelter and sickness risk
 	if _temp_timer >= 10.0:
 		_temp_timer = 0.0
-		var temp := TimeManager.temperature_c
+		var temp: float = float(TimeManager.temperature_c)
 		var sheltered := _is_sheltered()
 		var equip_stats := InventoryManager.get_equipment_stats() if is_instance_valid(InventoryManager) else {"warmth": 0.0}
 		var warmth: float = float(equip_stats.get("warmth", 0.0))
-		var effective_temp := temp + warmth * 0.5
+		var effective_temp: float = temp + warmth * 0.5
+
 		if (effective_temp < 8.0 or (TimeManager.is_night() and effective_temp < 12.0)) and not sheltered and not is_sleeping:
 			health = maxf(health - 1.5, 0.0)
 			if randf() < 0.15:

@@ -243,8 +243,9 @@ var _build_ghost_valid: bool = false
 
 
 func _on_time_changed(_minutes: float, _day: int) -> void:
-	var factor := TimeManager.get_daylight_factor()
-	var c := lerpf(0.25, 1.0, factor)
+	var factor: float = float(TimeManager.get_daylight_factor())
+	var c: float = lerpf(0.25, 1.0, factor)
+
 	# Weather darkens
 	if TimeManager.weather == "rain":
 		c *= 0.85
@@ -355,8 +356,9 @@ func _check_horde_event() -> void:
 	if TimeManager.day == _last_horde_day:
 		return
 	# Horde chance increases with days, guaranteed every few nights
-	var chance := 0.2 + TimeManager.day * 0.05
+	var chance: float = 0.2 + float(TimeManager.day) * 0.05
 	if randf() > chance and TimeManager.day % 3 != 0:
+
 		return
 	_last_horde_day = TimeManager.day
 	_spawn_horde()
