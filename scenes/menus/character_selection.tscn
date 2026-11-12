@@ -1,0 +1,191 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/character_selection.gd" id="1_script"]
+
+[node name="CharacterSelection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.11, 0.13, 0.16, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="PreviewPanel" type="PanelContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.1
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PreviewPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Seleção de Personagem"
+horizontal_alignment = 1
+
+[node name="PreviewCenter" type="CenterContainer" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PreviewSprite" type="TextureRect" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox/PreviewCenter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(192, 192)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GenderLabel" type="Label" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Masculino"
+horizontal_alignment = 1
+
+[node name="GenderButtons" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="MaleButton" type="Button" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox/GenderButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+text = "Masculino"
+
+[node name="FemaleButton" type="Button" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox/GenderButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 48)
+layout_mode = 2
+text = "Feminino"
+
+[node name="InfoLabel" type="Label" parent="MarginContainer/HBoxContainer/PreviewPanel/VBox"]
+layout_mode = 2
+text = "Ambos têm os mesmos atributos e possibilidades de gameplay."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CustomizationPanel" type="PanelContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Scroll" type="ScrollContainer" parent="MarginContainer/HBoxContainer/CustomizationPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="CustomTitle" type="Label" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Personalização"
+
+[node name="NameLabel" type="Label" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+text = "Nome"
+
+[node name="NameEdit" type="LineEdit" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Nome do personagem"
+
+[node name="HairStyleLabel" type="Label" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+text = "Cabelo / Penteado"
+
+[node name="HairStyleOption" type="OptionButton" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HairColorLabel" type="Label" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+text = "Cor do cabelo"
+
+[node name="HairColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+color = Color(0.35, 0.22, 0.12, 1)
+
+[node name="SkinColorLabel" type="Label" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+text = "Cor da pele"
+
+[node name="SkinColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+color = Color(0.93, 0.78, 0.67, 1)
+
+[node name="EyeColorLabel" type="Label" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+text = "Cor dos olhos"
+
+[node name="EyeColorPicker" type="ColorPickerButton" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+color = Color(0.2, 0.45, 0.7, 1)
+
+[node name="OutfitLabel" type="Label" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+text = "Roupas iniciais"
+
+[node name="OutfitOption" type="OptionButton" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="RandomizeButton" type="Button" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Aleatorizar"
+
+[node name="Actions" type="HBoxContainer" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BackButton" type="Button" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Voltar"
+
+[node name="ConfirmButton" type="Button" parent="MarginContainer/HBoxContainer/CustomizationPanel/Scroll/VBox/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Confirmar e Jogar"
